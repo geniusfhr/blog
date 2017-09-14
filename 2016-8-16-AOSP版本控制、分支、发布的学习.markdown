@@ -1,0 +1,31 @@
+---
+layout: post
+title:  "AOSP 版本控制、分支、发布 的学习"
+date:   2016-8-16
+categories: AOSP Android
+author: 方浩然
+---
+掌握正确的科学上网方法，终于有了一个自由的网络。最近几天看了一点关于AOSP的东西。
+
+
+## 什么是AOSP
+`AOSP`(Android Open Source Project)是由Google领导的Android开源项目，全世界的开发者都可以由此获得最新的Android操作系统源码。开发者可以任意修改其源代码，经过编译后做成ROM，适配到不同的设备中。同时设备上也要表明`Powered By Android`这类标志，来表示此操作系统是由Google Android项目提供支持。开源的强大就在于每个人都可以为它贡献代码，众人拾柴，这样Android生态会越来越繁荣。国内外众多Android设备制造厂商，手机公司，ROM团队(如知名的MIUI)，也都是通过AOSP起家的。
+<br/>
+
+## AOSP代码线(CodeLine) 版本控制、分支、发布
+Google作为AOSP的领导者，管理着这个极其庞大的项目。Android官网上对于项目管理的流程如下。图中可以看到五条`CodeLine`。
+<br/>
+
+![codeLine](http://i1.buimg.com/4851/e8691d2207505610.png)
+<br/>
+
+### Upstream Projects
+`Upstream Projects`是上游项目线。Android基于`Linux`内核，以及`WebKit`引擎等其他开源项目，所以这些项目的更新，也将导致Android代码的更新。Google以及全世界开发者贡献的代码，经过修改整合之后，由Google在AOSP中统一发布Release正式版。如图中的`K Release`。
+<br/>
+
+### K Release & K Experimental
+Release是正式发布的版本，按照字母顺序命名。比如K就是Android 4.4，L是5.0。手机厂商通过Release版本来适配到各自的手机中。`K Release`发布的同时，Google会立即建一个新的`K Experimental`实验版分支。这个分支由Android社区维护，即世界各地的开发者(统称Android Community)都可以它贡献代码，改Bug，加实验性功能等。Google在发布完4.4的正式Release版本之后，同时也做着持续的维护改良工作，从Experimental线中选择相应的代码合并到K Release中，为下一个4.4的子版本如4.4.1做准备。4.4.1在成熟之后也由Google发布。
+<br/>
+
+### L Release & L Experimental
+`K Release`发布之后，Google会再建立一条新的代码线`L Release`，为下一个大版本5.0做准备。这条线起初由只Google内部维护，Google内部可能会从上一个实验版中挑选部分代码，上游项目的更新，以及最新发布的4.4.1中选择代码进行合并，一段时间5.0成熟以后，L Release版本也正式发布，同时建立`L Experimental`线做实验性开发。以此迭代。

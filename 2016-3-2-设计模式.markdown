@@ -1,0 +1,163 @@
+---
+layout: post
+title:  "Java设计模式(一) -- 策略模式"
+date:   2016-3-2
+categories:  DesignPattern
+author: 方浩然
+header-img: "img/post-bg-web.jpg"
+---
+
+
+## 一些想法
+
+转眼间已经是大二下学期,接触编程已经一年半了，时间好快~~寒假一直在断断续续地看`《Thinking in Java》`,最深的感受就是Java确实是一门非常优秀的程序设计语言，绝对不是想象中的浮躁，例如随便上个培训班就算学会了。这本书的叙述风格很独特，作者对于java的理解相当深刻，第一章分析面向对象思想，对象导论，读完之后有一种醍醐灌顶之感，相对于之前看过的书，我认为这本书的作者是以第一人称视角在和读者交流，他自己对于java的看法，顺着作者的思路，可以思考地更加深入。这学期还是会慢慢啃完这本书的。
+
+本学期已经完全进入了专业课的学习中，计算机网络，组成原理，数据库原理。没有乱七八糟的水课和活动，我的目标很明确，就是将计算机基本功打扎实，加上java这门语言，要一直坚持下去。
+
+## 设计模式
+在大一的上学期就听过设计模式这个词，觉得无比高大上。实质是对代码进一步的抽象，甚至可以上升到艺术的高度（怎样的代码更加优美和高效，具有更好的扩展性，更加健壮）。对于优秀的代码总结出设计的规律，加以复用，这就是`设计模式`(DesignPattern)。   
+java院选课的课本讲的比较浅，看得很快，几乎一天看完了三分之一，到了设计模式这一章，这是我之前从未接触过的，所以自己很认真地读完了第一个模式，策略模式，真心觉得优雅，写出来的代码非常漂亮，赏心悦目。
+
+
+## 策略模式
+关于策略模式`Strategy`最核心的部分是对多态的理解和运用。多态就是在一个类的继承关系中，当父类的引用指向子类的对象时，这个父类的变量就是多态的。对这个变量的方法的调用，在运行时会进行动态绑定，绑定到真正子对象中所重写（`Overwriting`）的方法，完成调用。子类对象完成`向上转型`成父类，通过父类完成和其他代码的交互，这样当父类的方法在不同子类中有不同的实现时，就不用每个子类分别写一套代码，只需要覆盖父类中的方法，运行时的绑定是自动实现的。
+
+
+同样多态适用于接口中，接口可以看成是其实现类的一个抽象，通过接口和其他代码来交互，这样的代码扩展性更高。如果需要重写某个方法的实现，只需增加一个类实现当前接口，交互部分的代码完全不用更改。站在接口的`实现类`的角度，我们可以将需要实现的方法向上抽象成接口，编写关于接口的代码，实现的过程可以放到最后。回到`Strategy策略`中，策略就是一个抽象的方法，是具体策略的抽象，我们可以封装在接口中。至于具体策略的种类和过程，不去关心，`至少在写交互代码的时候不需要关心`。
+
+
+```
+//策略接口
+public interface Strategy {
+
+    //计算平均分
+
+    public double computerAverage(double[] score);
+
+
+}
+
+```
+
+
+```
+//关于接口和其他代码的交互   
+public class ComputerAverage {
+
+    Strategy strategy;                                  //策略接口
+
+    public void setStrategy(Strategy strategy){         //设置策略
+        this.strategy = strategy;
+    }
+
+    public double getAverage(double[] score){           //计算平均分
+        if(strategy == null){
+            System.out.println("The strategy has not been choose yet!");
+            return -1;
+        } else {
+            return strategy.computerAverage(score);
+        }
+    }
+}
+
+```
+
+
+```
+//Strategy A and B  具体策略AB 实现接口
+public class StrategyA implements Strategy {
+
+    //实现接口 计算平均
+    @Override
+    public double computerAverage(double[] score) {
+        double sum = 0;
+        for(double s : score){
+            sum += s;
+        }
+        return sum/score.length;
+    }
+}
+
+public class StrategyB implements Strategy {
+
+    @Override
+    public double computerAverage(double[] score) {
+
+       /*
+       * bubble sort to remove the biggest and  smallest score
+       * and computer the average
+       *
+       */
+
+        for(int i = score.length-1; i > 0; i--){
+            for(int j = 0; j < i; j++ ){
+                if(score[j] > score[j+1]){
+                    double t = score[j];
+                    score[j] = score[j+1];
+                    score[j+1] = t;
+                }
+            }
+        }
+
+        double sum = 0;
+        for(int i = 1; i < score.length-1; i++){
+            sum += score[i];
+        }
+
+
+
+        return sum / (score.length-2);
+    }
+}
+
+```
+
+```
+//Main类 作为顶层类 程序的入口 管理整个应用
+
+public class Main {
+
+    public static void main(String[] args) {
+
+        double score[] = {1,2,3,4,6};
+
+        ComputerAverage game = new ComputerAverage();
+
+        game.setStrategy(new StrategyA());
+        Person mm = new Person("MM",game.getAverage(score));
+
+        game.setStrategy(new StrategyB());
+        Person gg = new Person("GG",game.getAverage(score));
+
+
+        System.out.println(mm.getName()+ " 的得分是" + mm.getScore());
+        System.out.println(gg.getName()+ " 的得分是" + gg.getScore());
+
+    }
+}
+
+//Person类
+class Person {
+
+    private String name;            //姓名
+    private double score;              //分数
+
+    public Person(String name,double score) {
+        this.name = name;
+        this.score = score;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public double getScore() {
+        return score;
+    }
+}
+
+```
+
+## 代码分析
+我们将AB两个不同计算平均分的方法抽象成一个策略接口，分别用两个具体策略类来实现这个接口，在对平均值计算的代码中，我们只需要使用这个抽象的接口，对于具体的求平均值方法不去关心，通过接口调用求平均的方法。Main作为顶层，类的管理者，完成调度工作。对接口的赋值中，我们使用多态带来的好处，将具体策略AB的对象赋给接口的引用，这样的`动态绑定`，在运行时会自动完成相应方法的调用。这样一份交互代码就完成了两个具体策略的调用，当然还可以更多。（接口的多实现）。    
+使用`策略模式`可以让我们更加专注于程序整体逻辑的编写，不需要急着去考虑具体实现，这样程序的结构会更加清晰，也大大提高了扩展性。可以想象，如果没有使用策略模式，那么代码会全裹在一起，需要程序员写复杂的选择和判断来实现调用。

@@ -1,0 +1,17 @@
+---
+layout: post
+title:  "博客更新日志"
+date:   2015-12-16 19:14:00 +0800
+header-img: "img/post-bg-web.jpg"
+author: Fang
+---
+>`Update 2015-12-20   `  
+>修复了About里面照片排版问题  
+>`Update 2015-12-19    `  
+>使用多说插件，增加文章评论功能  
+>`Update  2015-12-18 `     
+>Jekyll引擎对Markdown代码的引用问题解决了。自动语法高亮，处理的还不错。
+
+热爱代码，热爱生活的少年。  
+这是我的第一篇博客，右上角About有关于我的信息。  
+![自拍](http://i4.tietuku.com/ccba378c78c1eb0d.jpg)

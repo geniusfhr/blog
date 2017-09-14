@@ -1,0 +1,142 @@
+---
+layout: post
+title:  "Java设计模式(三) -- 装饰者模式"
+date:   2016-3-13
+categories:  DesignPattern decorator
+author: 方浩然
+header-img: "img/post-bg-theory.jpg"
+---
+
+
+## 定义
+
+>装饰者模式（`Decorator`）在不必改变原类文件和使用继承的情况下，动态地扩展一个对象的功能。它是通过创建一个包装对象，也就是装饰来包裹真实的对象。
+
+装饰者模式不是很难理解，用代码表达却有些困难。组合与继承的用法要了然于胸，才能写出漂亮的代码。装饰者，就是包装者。比如一面墙，给他刷上漆，漆就是一层装饰者。一个礼物，给他加个漂亮的盒子，盒子就是包装者。装饰者模式就是一种能够让核心对象动态地被包装起来的模式。可以随意选择装饰者，给核心对象加上几层包装。
+
+考虑这样一个问题。咖啡店里卖很多种饮料，咖啡牛奶可乐这种主要饮料，同时顾客还可以选择配料，比如糖，珍珠……设计的系统要可以计算出他们随意组合起来的价钱。在`Decorator`模式中，我们把主饮料作为核心，配料作为装饰者。主饮料和配料都继承自同一个抽象的`Beverage`类。这样做：
+
+* 具体核心饮料继承自`Beverage`类，实现`cost()`抽象方法，计算价格。
+* 具体配料的父类`Decorator`(也是一个抽象类)继承自`Beverage`。`Decorator`的作用在于提供一个重写的接口，作为具体装饰者的向上抽象。
+* 具体配料`DecoratorA`持有一个`Beverage`的`引用`，这个组合非常重要，`Beverage`作为配料和主要饮料的公共父类，多态性非常广。可以动态地向下转为具体饮料或者装饰者。
+* 具体配料（装饰者）的`cost方法`因为其持有了一个`Beverage`，所以应该是beverage的价格加上本身的价格。
+
+
+`所以当主要饮料被配料包装上一层后，仍然可以作为一个Beverage，被第二层包装持有。`
+
+在`Main`中，我们通过不断地给new出新的装饰者，并同时给持有的Beverage赋值，这样就形成了一个包装体系。核心在最内部，外层都是包装者。
+
+
+
+```java
+
+public abstract class Beverage {
+    String description = "unknownBeverage";     //饮料描述
+
+    public abstract double cost();  //抽象方法 返回饮料价格
+
+    public String getDescription(){
+        return description;
+    }
+
+}
+
+
+```
+
+```java
+
+public class Cola extends Beverage {
+
+    Cola() {
+        this.description = "主饮料(可乐)";
+    }
+
+
+    @Override
+    public double cost() {
+        return 5.0;
+    }
+}
+
+public class Milk extends Beverage {
+
+    //构造方法
+    Milk() {
+        this.description = "主饮料(牛奶)";
+    }
+
+
+    //重写价格
+    @Override
+    public double cost() {
+        return 6.0;
+    }
+
+}
+
+
+```
+
+```java
+/**
+ *
+ * 具体装饰者者所需要实现的抽象方法
+ * Created by fhr on 16/3/12.
+ */
+
+public abstract class Decorator extends Beverage  {
+
+    public abstract String getDescription();    //得到Beverage的描述
+
+}
+
+
+```
+
+```java
+public class DecoratorA extends Decorator {
+    Beverage beverage;       //核心饮料 被装饰者 持有核心的引用
+
+    DecoratorA(Beverage beverage) {
+        this.beverage = beverage;
+    }
+
+    @Override
+    public String getDescription() {
+        return beverage.getDescription() + " 加上配料A";
+    }
+
+    @Override
+    public double cost() {
+        return beverage.cost() + 1.0;
+    }
+}
+
+
+```
+
+```java
+//Main类 程序的入口 StarBucks的管理者
+public class Main {
+
+    public static void main(String[] args) {
+
+	    Beverage beverage = new DecoratorA(new DecoratorB(new Milk()));
+        System.out.println(beverage.getDescription() + " 价格: " + beverage.cost());
+
+        beverage = new DecoratorB(new DecoratorB(new DecoratorA(new Cola())));
+        System.out.println(beverage.getDescription() + " 价格: " + beverage.cost());
+
+    }
+}
+
+```
+
+### 输出
+
+```
+主饮料(牛奶) 加上配料B 加上配料A 价格: 8.5
+主饮料(可乐) 加上配料A 加上配料B 加上配料B 价格: 9.0
+
+```

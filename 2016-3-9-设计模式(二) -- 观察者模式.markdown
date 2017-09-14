@@ -1,0 +1,217 @@
+---
+layout: post
+title:  "Java设计模式(二) -- 观察者模式"
+date:   2016-3-9
+categories:  DesignPattern observer
+author: 方浩然
+header-img: "img/contact-bg.jpg"
+---
+
+
+
+
+## 关于观察者模式
+
+>观察者模式`（Observer）`有时被称作发布/订阅模式，观察者模式定义了一种一对多的依赖关系，让多个观察者对象同时监听某一个主题对象。这个主题对象在状态发生变化时，会通知所有观察者对象，使它们能够自动更新自己。
+
+继续学习到head first的第二个模式，`观察者模式`。定义如上。这种模式很常见，也相当精巧。比如我们的微信公众号的关注。当我们关注一个公众号的时候，我们就成了观察者，同时，我们向这个公众号注册了自己。于是，当公众号有新的消息出现时，你就会收到通知。而且所有关注的人都和你一样接收到了这个消息。有个词叫推送，`Push`，我觉得很形象地描述了这个过程。`不是你向它索取消息，而是它一有新的消息，就会主动地推送给你。`这样使所有的订阅者都不会错过。   
+
+设计模式讲究松耦合，主要手段是接口的使用。当然在这个模式中我们也用到了接口。我们设计了一个Newspaper接口，用来约束报社的几个行为。     
+
+* 注册订阅者 Register
+
+* 移除订阅者 Remove
+
+* 通知所有订阅者 Notify  
+
+
+```java
+
+public interface Newspaper {
+
+    //注册订阅
+    void registerNewspaper(Reader r);
+
+    //移除订阅
+    void removeReader(Reader r);
+
+    //通知订阅者
+    void notifyReader();
+
+}
+
+```  
+
+以及订阅者接口，来约束订阅者的行为。
+
+* 更新数据
+
+* 显示推送内容
+
+```java
+
+public interface Reader {
+
+    //更新数据
+    void update(int newsNumber,String newsContent);
+
+    //显示推送内容
+    void showNewspaper();
+
+    //订阅者姓名
+    String getReaderName();
+
+}
+
+```
+
+订阅者的关键在于`Update`方法，一旦报社的数据更新，就会在`notify`中调用`Update`来通知所有的订阅者。关于报社的实现类。`ChinaDaily`:  
+
+
+```java
+
+public class ChinaDaily implements Newspaper {
+
+    private int newsNumber;                 //新闻编号
+    private String newsContent;             //新闻内容
+
+    private ArrayList<Reader> readers  ;      //阅读者
+
+
+    ChinaDaily(){
+        readers = new ArrayList<Reader>();
+    }
+
+    //订阅者实现注册
+    @Override
+    public void registerNewspaper(Reader r) {
+        readers.add(r);         //注册
+        System.out.println("注册者("+r.getReaderName()+")订阅成功!");
+    }
+
+
+    //移除订阅者
+    @Override
+    public void removeReader(Reader r) {
+        if (!readers.isEmpty()){
+           readers.remove(readers.indexOf(r));          //移除订阅者!
+            System.out.println("订阅者("+r.getReaderName()+")已移除!");
+        }
+
+    }
+
+    //通知所有订阅者
+    @Override
+    public void notifyReader() {
+
+        for(Reader reader : readers){
+            reader.update(newsNumber,newsContent);      //订阅者更新数据
+        }
+        System.out.println("新闻已推送!");
+    }
+
+    //报社更新新闻
+    void setNewspaper(int newsNumber,String newsContent) {
+        this.newsNumber = newsNumber;
+        this.newsContent = newsContent;
+
+        notifyReader();         //新闻改变 通知所有订阅者
+    }
+}
+
+```
+
+我们持有了一个关于订阅者接口的`ArrayList`，当订阅者进行注册时，就会调用报社的`register`方法，即向这个数组中添加自己。完成注册。一旦报社的新闻得到更新，就会通知处在这个数组中的所有订阅者，向`Update`中传入数据。这样订阅者的数据就会更新，完成推送。如果订阅者取消了订阅，那么在数组中删去自己，再下一次数据更新的时候便不会得到通知。
+
+
+```java
+
+//Reader接口的实现类 Student
+//Teacher 省略
+
+public class Student implements Reader {
+
+    private String name;            //订阅者姓名
+    private int newsNumber;         //新闻编号
+    private String newsContent;     //新闻内容
+
+
+    public Student(String name,Newspaper newspaper){
+        this.name = name;
+        newspaper.registerNewspaper(this);              //新建订阅者的同时 向报社订阅
+    }
+
+    //更新数据
+    @Override
+    public void update(int newsNumber, String newsContent) {
+        this.newsNumber = newsNumber;
+        this.newsContent = newsContent;
+        showNewspaper();
+    }
+
+
+    //返回姓名
+    @Override
+    public String getReaderName() {
+        return name;
+    }
+
+    @Override
+    public void showNewspaper() {
+        System.out.println("Hello,我是学生"+name+",今天我看了第 "+newsNumber+" 号新闻:"
+                            +newsContent);
+    }
+
+    void removeNewpaper(Newspaper newspaper){
+        newspaper.removeReader(this);
+    }
+}
+
+```
+
+
+```java
+
+
+public class Main {
+
+    public static void main(String[] args) {
+
+        //构造中国日报
+        ChinaDaily chinaDaily  =  new ChinaDaily();
+
+        //构造学生 老师对象 同时向报社注册
+        Student fhr = new Student("方浩然",chinaDaily);
+        Student wlf = new Student("吴丽凡",chinaDaily);
+        Teacher jack = new Teacher("Jack",chinaDaily);
+
+        //新闻更新
+        chinaDaily.setNewspaper(1,"今天是个好日子!");
+
+        //Jack取消订阅
+        chinaDaily.removeReader(jack);
+
+        //新闻更新
+        chinaDaily.setNewspaper(2,"今天小方得了一百分!");
+    }
+}
+
+```
+
+## 测试结果:
+
+```
+注册者(方浩然)订阅成功!
+注册者(吴丽凡)订阅成功!
+注册者(Jack)订阅成功!
+Hello,我是学生方浩然,今天我看了第 1 号新闻:今天是个好日子!
+Hello,我是学生吴丽凡,今天我看了第 1 号新闻:今天是个好日子!
+Hello,我是老师Jack,今天我看了第 1 号新闻:今天是个好日子!
+新闻已推送!
+订阅者(Jack)已移除!
+Hello,我是学生方浩然,今天我看了第 2 号新闻:今天小方得了一百分!
+Hello,我是学生吴丽凡,今天我看了第 2 号新闻:今天小方得了一百分!
+新闻已推送!
+```
+
+当Jack不再关注这份报纸的后，第二次`Newpaper`更新时便不会收到消息推送了。这就是`观察者模式`。
